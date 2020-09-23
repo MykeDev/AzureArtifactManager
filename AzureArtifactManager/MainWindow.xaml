@@ -1,0 +1,121 @@
+﻿<Window x:Class="AzureArtifactManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:model="clr-namespace:AzureArtifactManager.Model"
+        xmlns:viewmodel="clr-namespace:AzureArtifactManager.ViewModels"
+        mc:Ignorable="d"
+        Title="Azure Artifact Manager" Height="450" Width="800">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.RowSpan="2"  Visibility="{Binding HasConfigurationError, Converter={StaticResource BoolToVisibilityConverter}}">
+            <TextBlock Text="Configuration Error" Foreground="Red" />
+            <TextBlock Text="Please configure your Organization and Personal Access Token in the app.config file" Foreground="Red" />
+            <TextBlock Text="Configuration of a Project is optional (not needed to see Organization Level Feeds)"  />
+            <TextBlock Text="Just specify the organization name: MyOrg if your url is https://dev.azure.com/MyOrg"  />
+            <Button Content="Open App Config" Command="{Binding OpenAppConfigCommand}" />
+        </StackPanel>
+
+        <Grid Grid.Row="0" Visibility="{Binding HasNoConfigurationError, Converter={StaticResource BoolToVisibilityConverter}}">
+            <DockPanel LastChildFill="True">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Connected to: " />
+                        <TextBlock Text="{Binding Organization}" />
+                    </StackPanel>
+                    <TextBlock Text="Available Feeds:" />
+                    <ComboBox ItemsSource="{Binding Feeds}" SelectedItem="{Binding SelectedFeed, Mode=TwoWay}" >
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type model:Feed}">
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </DockPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" Visibility="{Binding HasNoConfigurationError, Converter={StaticResource BoolToVisibilityConverter}}">
+            <DockPanel LastChildFill="True">
+                <DockPanel LastChildFill="True" DockPanel.Dock="Top">
+                    <Button DockPanel.Dock="Right" Content="Add New Package" Command="{Binding AddNewPackageCommand}" />
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Available Packages for Feed" />
+                        <TextBlock Margin="10 0 0 0" Text="{Binding SelectedFeed.Name}"/>
+                    </StackPanel>
+
+                </DockPanel>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <ListBox ItemsSource="{Binding AvailablePackages}" SelectedItem="{Binding SelectedPackage}" Grid.Column="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type viewmodel:PackageViewModel}">
+                                <TextBlock Text="{Binding Name}" Grid.Column="0"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <DockPanel Grid.Column="1" Visibility="{Binding ShowPackageDetails, Converter={StaticResource BoolToVisibilityConverter}}">
+                    
+                        <GroupBox Header="Upload" DockPanel.Dock="Bottom">
+                            <StackPanel>
+                                <TextBlock Foreground="Red" Text="Make sure you know what you're doing!" />
+                                <Button Content="Upload new Version" DockPanel.Dock="Right" Command="{Binding SelectedPackage.UploadNewVersionCommand}"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="Name:" Grid.Column="0" Grid.Row="0"/>
+                            <TextBox Text="{Binding SelectedPackage.Name, Mode=TwoWay}" IsEnabled="{Binding SelectedPackage.IsNewPackage}" Grid.Column="1" Grid.Row="0" />
+
+                            <TextBlock Text="Version:" Grid.Column="0" Grid.Row="1"/>
+                            <TextBox Text="{Binding SelectedPackage.Version, Mode=TwoWay}" Grid.Column="1" Grid.Row="1" />
+
+                            <TextBlock Text="Description:" Grid.Column="0" Grid.Row="2"/>
+                            <TextBox Text="{Binding SelectedPackage.Description, Mode=TwoWay}" Grid.Column="1" Grid.Row="2" />
+
+                            <Button Content="Download" Command="{Binding SelectedPackage.DownloadSelectedPackageCommand}" Grid.ColumnSpan="2" Grid.Row="3"/>
+
+                            <StackPanel Grid.ColumnSpan="2" Grid.Row="4" Margin="0 30 0 0 ">
+                                <TextBlock Text="Name must be all lowercase and no spaces are allowed!" />
+                                <TextBlock Text="Version only includes Major.Minor.Patch - upload will fail if format is not correct" />
+                            </StackPanel>
+                        </Grid>
+                    </DockPanel>
+
+                </Grid>
+
+            </DockPanel>
+        </Grid>
+    </Grid>
+
+</Window>

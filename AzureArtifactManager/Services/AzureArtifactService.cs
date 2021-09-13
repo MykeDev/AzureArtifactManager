@@ -154,9 +154,19 @@ namespace AzureArtifactManager.Services
             var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var artifactToolFolder = Path.Join(userProfile, artifactToolParentFolder);
 
-            var artifactToolExecutable = Directory.GetFiles(artifactToolFolder, "artifacttool.exe", SearchOption.AllDirectories).FirstOrDefault();
+            var artifactToolExecutable = string.Empty;
 
-            if (artifactToolExecutable == null)
+            try
+            {
+
+                artifactToolExecutable = Directory.GetFiles(artifactToolFolder, "artifacttool.exe", SearchOption.AllDirectories).FirstOrDefault();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                artifactToolExecutable = null;
+            }
+
+            if (string.IsNullOrEmpty(artifactToolExecutable))
             {
                 if (isRetry)
                 {
